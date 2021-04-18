@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using CustomUserManagement.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomUserManagement.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -15,7 +16,7 @@ namespace CustomUserManagement.Data
         {
             base.OnModelCreating(builder);
             builder.HasDefaultSchema("Identity");
-            builder.Entity<IdentityUser>().ToTable("User");
+            builder.Entity<ApplicationUser>().ToTable("User");
             builder.Entity<IdentityRole>().ToTable("Role");
             builder.Entity<IdentityUserRole<string>>().ToTable("UserRole");
             builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaim");

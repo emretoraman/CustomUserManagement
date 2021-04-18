@@ -1,6 +1,4 @@
-using System;
-
-namespace CustomUserManagement.Models
+namespace CustomUserManagement.ViewModels
 {
     public class ErrorViewModel
     {
