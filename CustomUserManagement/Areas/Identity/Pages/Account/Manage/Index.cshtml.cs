@@ -123,7 +123,7 @@ namespace CustomUserManagement.Areas.Identity.Pages.Account.Manage
             }
             if (Request.Form.Files.Count > 0)
             {
-                var file = Request.Form.Files.FirstOrDefault();
+                var file = Request.Form.Files[0];
                 using (var dataStream = new MemoryStream())
                 {
                     await file.CopyToAsync(dataStream);
