@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using CustomUserManagement.Models;
 using Microsoft.AspNetCore.Identity;
@@ -42,6 +44,8 @@ namespace CustomUserManagement.Areas.Identity.Pages.Account.Manage
 
             [Display(Name = "Profile picture")]
             public byte[] ProfilePicture { get; set; }
+
+            public string ProfilePictureBase64 { get; set; }
         }
 
         private void LoadAsync(ApplicationUser user)
@@ -53,7 +57,8 @@ namespace CustomUserManagement.Areas.Identity.Pages.Account.Manage
                 PhoneNumber = user.PhoneNumber,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                ProfilePicture = user.ProfilePicture
+                ProfilePicture = user.ProfilePicture,
+                ProfilePictureBase64 = user.ProfilePictureBase64
             };
         }
 
@@ -83,11 +88,35 @@ namespace CustomUserManagement.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
-            if (Input.PhoneNumber != user.PhoneNumber || Input.FirstName != user.FirstName || Input.LastName != user.LastName)
+            var isUpdating = true;
+            if (Input.PhoneNumber != user.PhoneNumber)
             {
                 user.PhoneNumber = Input.PhoneNumber;
+                isUpdating = true;
+            }
+            if (Input.FirstName != user.FirstName)
+            {
                 user.FirstName = Input.FirstName;
+                isUpdating = true;
+            }
+            if (Input.LastName != user.LastName)
+            {
                 user.LastName = Input.LastName;
+                isUpdating = true;
+            }
+            if (Request.Form.Files.Count > 0)
+            {
+                var file = Request.Form.Files.FirstOrDefault();
+                using (var dataStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(dataStream);
+                    user.ProfilePicture = dataStream.ToArray();
+                }
+                isUpdating = true;
+            }
+
+            if (isUpdating)
+            {
                 var result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
