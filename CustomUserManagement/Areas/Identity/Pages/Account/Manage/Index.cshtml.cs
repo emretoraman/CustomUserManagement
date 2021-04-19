@@ -22,16 +22,19 @@ namespace CustomUserManagement.Areas.Identity.Pages.Account.Manage
             _signInManager = signInManager;
         }
 
-        public string Username { get; set; }
-
         [TempData]
         public string StatusMessage { get; set; }
+
+        [TempData]
+        public string UserNameChangeLimitMessage { get; set; }
 
         [BindProperty]
         public InputModel Input { get; set; }
 
         public class InputModel
         {
+            public string Username { get; set; }
+
             [Phone]
             [Display(Name = "Phone number")]
             public string PhoneNumber { get; set; }
@@ -50,10 +53,9 @@ namespace CustomUserManagement.Areas.Identity.Pages.Account.Manage
 
         private void LoadAsync(ApplicationUser user)
         {
-            Username = user.UserName;
-
             Input = new InputModel
             {
+                Username = user.UserName,
                 PhoneNumber = user.PhoneNumber,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
@@ -70,6 +72,7 @@ namespace CustomUserManagement.Areas.Identity.Pages.Account.Manage
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
 
+            UserNameChangeLimitMessage = $"You can change your username {user.UsernameChangeLimit} more time(s).";
             LoadAsync(user);
             return Page();
         }
@@ -89,6 +92,20 @@ namespace CustomUserManagement.Areas.Identity.Pages.Account.Manage
             }
 
             var isUpdating = true;
+
+            if (Input.Username != user.UserName && user.UsernameChangeLimit > 0)
+            {
+                var userNameExists = await _userManager.FindByNameAsync(Input.Username);
+                if (userNameExists != null)
+                {
+                    StatusMessage = "Username already token. Select a different username.";
+                    return RedirectToPage();
+                }
+                user.UserName = Input.Username;
+                user.UsernameChangeLimit -= 1;
+                isUpdating = true;
+            }
+
             if (Input.PhoneNumber != user.PhoneNumber)
             {
                 user.PhoneNumber = Input.PhoneNumber;
